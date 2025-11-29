@@ -1,0 +1,4 @@
+repository "Ludens_25.2_UnityStudy/Ludens_25.2_UnityStudy@2293643@cloud"
+  path "/"
+    br "/main"
+    co "/main"
