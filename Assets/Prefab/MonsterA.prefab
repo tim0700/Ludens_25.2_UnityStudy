@@ -100,8 +100,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   direction: {x: 0, y: 0, z: 0}
+  maxHealth: 10
+  health: 0
   offset: -90
   speed: 0.05
+  damage: 4
+  effectTimeForward: 0.3
+  effectTimeBackward: 0.3
 --- !u!60 &729204636280752133
 PolygonCollider2D:
   m_ObjectHideFlags: 0

@@ -1,10 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
     public static Player instance;
+    [SerializeField] private float maxHealth;
+    [SerializeField] private float health;
     [SerializeField] private float x;
     [SerializeField] private float y;
     [SerializeField] private float speed = 5f;
@@ -13,10 +16,13 @@ public class Player : MonoBehaviour
     [SerializeField] private int attackOrder;
     [SerializeField] private bool isInvincible;
     [SerializeField] private bool isAttacking;
+    [SerializeField] private float damage;
     [SerializeField] private Rigidbody2D rigid;
     [SerializeField] private GameObject body;
     [SerializeField] private GameObject HandL;
     [SerializeField] private GameObject HandR;
+    [SerializeField] private Image hpBar;
+    [SerializeField] private GameManager gameManager;
 
     private Coroutine resetCoroutine;
     private Coroutine attackCoroutine;
@@ -27,6 +33,8 @@ public class Player : MonoBehaviour
         {
             instance = this;
         }
+
+        health = maxHealth;
     }
 
 
@@ -63,7 +71,7 @@ public class Player : MonoBehaviour
         }
     }
 
-    public void Damaged(Vector3 dir)
+    public void Damaged(Vector3 dir, float damage)
     {
         if (isInvincible)
         {
@@ -71,6 +79,26 @@ public class Player : MonoBehaviour
         }
         rigid.velocity = Vector2.zero;
         rigid.AddForce(dir * knockbackForce, ForceMode2D.Impulse);
+
+        health -= damage;
+        hpBar.fillAmount = health / maxHealth;
+
+        if (health <= 0)
+        {
+            // GameManager가 할당되지 않았다면 자동으로 찾기
+            if (gameManager == null)
+            {
+                gameManager = FindObjectOfType<GameManager>();
+            }
+
+            // GameManager 메서드를 먼저 호출 (Destroy 전에!)
+            if (gameManager != null)
+            {
+                gameManager.ApperGameOverWindow();
+            }
+            
+            Destroy(gameObject);
+        }
 
         body.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 0.25f);
         HandL.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 0.25f);
@@ -95,7 +123,12 @@ public class Player : MonoBehaviour
         HandR.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 1f);
     }
 
-    private bool IsAttacking()
+    public float GetDamage()
+    {
+        return damage;
+    }
+
+    public bool IsAttack()
     {
         return isAttacking; 
     }
@@ -163,4 +196,25 @@ public class Player : MonoBehaviour
 
         isAttacking = false;
     }
+
+    public void PlayerDamageUp()
+    {
+        damage += 5;
+    }
+
+    public void PlayerHealthUp()
+    {
+        health += 10;
+        if (health > maxHealth)
+            health = maxHealth;
+        hpBar.fillAmount = health / maxHealth;
+    }
+
+    public void PlayerSpeedUp()
+    {
+        speed *= 1.2f;
+    }
+
+
+
 }

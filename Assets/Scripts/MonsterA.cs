@@ -5,8 +5,20 @@ using UnityEngine;
 public class MonsterA : MonoBehaviour
 {
     [SerializeField] private Vector3 direction;
+    [SerializeField] private float maxHealth;
+    [SerializeField] private float health;
     [SerializeField] private float offset;
     [SerializeField] private float speed;
+    [SerializeField] private float damage;
+    [SerializeField] private float effectTimeForward;
+    [SerializeField] private float effectTimeBackward;
+
+    private Coroutine coroutine;
+
+    private void Awake()
+    {
+        health = maxHealth;
+    }
 
     private void FixedUpdate()
     {
@@ -29,7 +41,63 @@ public class MonsterA : MonoBehaviour
     private void OnTriggerStay2D(Collider2D collision) {
         if (collision.gameObject.tag == "Player" && Player.instance != null)
         {
-            Player.instance.Damaged(direction);    
+            Player.instance.Damaged(direction, damage);    
         }
     }
+
+    public void Damaged(float damage)
+    {
+        health -= damage;
+
+        if (health <= 0)
+        {
+            Destroy(gameObject);
+        }
+
+        if(coroutine != null)
+        {
+            StopCoroutine(DamageEffect());
+            coroutine = null;
+        }
+        coroutine = StartCoroutine(DamageEffect());
+    }
+
+    private IEnumerator DamageEffect()
+    {
+        float t = 0f;
+        while(t < effectTimeForward)
+        {
+            t += Time.deltaTime;
+            transform.gameObject.GetComponent<SpriteRenderer>().color = new Color(1f, t / effectTimeForward, t / effectTimeForward, 1f);
+            transform.gameObject.GetComponent<TrailRenderer>().startColor = new Color(1f, t / effectTimeForward, t / effectTimeForward, 1f);
+            transform.gameObject.GetComponent<TrailRenderer>().endColor = new Color(1f, t / (effectTimeForward * 2), t / (effectTimeForward * 2), 1f);
+
+            if (t > effectTimeForward)
+            {
+                transform.gameObject.GetComponent<SpriteRenderer>().color = new Color(1f, 1f, 1f, 1f);
+                transform.gameObject.GetComponent<TrailRenderer>().startColor = new Color(1f, 1f, 1f, 1f);
+                transform.gameObject.GetComponent<TrailRenderer>().endColor = new Color(1f, 0.5f, 0.5f, 1f);
+            }
+            yield return null;
+        }
+
+        t = 0f;
+
+        while(t < effectTimeBackward)
+        {
+            t += Time.deltaTime;
+            transform.gameObject.GetComponent<SpriteRenderer>().color = new Color(1f, 1f - t / effectTimeBackward, 1f - t / effectTimeBackward, 1f);
+            transform.gameObject.GetComponent<TrailRenderer>().startColor = new Color(1f, 1f - t / effectTimeBackward, 1f - t / effectTimeBackward, 1f);
+            transform.gameObject.GetComponent<TrailRenderer>().endColor = new Color(1f, 1f - t / (effectTimeBackward * 2), 1f - t / (effectTimeBackward * 2), 1f);
+
+            if (t > effectTimeBackward)
+            {
+                transform.gameObject.GetComponent<SpriteRenderer>().color = new Color(1f, 0f, 0f, 1f);
+                transform.gameObject.GetComponent<TrailRenderer>().startColor = new Color(1f, 0f, 0f, 1f);
+                transform.gameObject.GetComponent<TrailRenderer>().endColor = new Color(1f, 0.5f, 0.5f, 1f);
+            }
+            yield return null;
+        }
+    }
+
 }
